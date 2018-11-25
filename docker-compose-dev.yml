@@ -1,0 +1,39 @@
+version: '3.6'
+
+services:
+  
+  partido:
+    build:
+      context: ./services/partido
+      dockerfile: Dockerfile-dev
+    volumes:
+      - './services/partido:/usr/src/app'
+    ports:
+      - 5001:5000
+    environment:
+      - FLASK_ENV=development
+      - APP_SETTINGS=project.config.DevelopmentConfig
+      - DATABASE_URL=postgres://postgres:postgres@partido-db:5432/partido_dev 
+      - DATABASE_TEST_URL=postgres://postgres:postgres@partido-db:5432/partido_test
+    depends_on:  
+      - partido-db
+
+  partido-db:
+    build:
+      context: ./services/partido/project/db
+      dockerfile: Dockerfile
+    ports:
+      - 5435:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres 
+
+  nginx:
+    build:
+      context: ./services/nginx
+      dockerfile: Dockerfile-dev
+    restart: always
+    ports:
+      - 80:80
+    depends_on:
+      - partido
